@@ -315,7 +315,7 @@
           <div style="display:flex;gap:8px;align-items:center"><button class="btn btn-sm btn-outline" id="cpId">${ic('copy', 14)} Salin ID</button><span class="pill tag-live"><i class="dot"></i> Tersimpan di Cloud</span></div></div>
         <div style="display:grid;gap:14px;grid-template-columns:1fr" class="sgrid"><div class="kv">
           <div class="it"><span class="i">${ic('user', 17)}</span><div><small>Nama Pengunjung</small><b>${esc(p.nama)}</b><div class="small t2">${esc(BK.JENIS[s.snap.jenis].l)}${p.kelas ? ' • Kelas ' + esc(p.kelas) : ''}${p.instansi ? ' • ' + esc(p.instansi) : ''}</div></div></div>
-          <div class="it"><span class="i">${ic('clock', 17)}</span><div><small>Waktu Kedatangan</small><b>${esc(BK.fmtTgl(r.tanggal))}, ${esc(r.jam)} WIB</b></div></div>
+          <div class="it"><span class="i">${ic('clock', 17)}</span><div><small>Waktu Kedatangan</small><b>${esc(BK.fmtTgl(r.tanggal))}, ${esc(r.jam)} ${BK.tzAbbr()}</b></div></div>
           <div class="it"><span class="i">${ic('heart', 17)}</span><div><small>Bidang Layanan</small><b>${esc(p.bidang.join(', '))}</b>${p.tujuan ? `<div class="small t2">${esc(p.tujuan)}</div>` : ''}</div></div>
           <div class="it"><span class="i">${ic('shieldok', 17)}</span><div><small>Guru BK Bertugas</small><b>${esc(info.konselor_standby)}</b><div class="small t2">${esc(info.lokasi_bk)}</div></div></div></div>
           <div><span class="small muted" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">${ic('camera', 14)} Bukti Presensi Selfie</span><div class="shot-box"><img src="${s.snap.foto}" alt="Selfie Anda"></div></div></div>
@@ -335,7 +335,7 @@
   function resetKiosk() { clearInterval(tick); tick = null; BK.state.left = null; BK.state.hold = false; BK.state.sending = null; F = null; BK.LS.del('draft'); BK.go('#/'); if (location.hash === '#/' || !location.hash) BK.resolve(); }
   function printTicket(r, p, s) {
     $('#printArea').innerHTML = `<div style="max-width:420px;margin:auto;font-family:Arial,sans-serif;text-align:center"><img src="${esc(BK.cfg.LOGO)}" width="70" alt=""><h2>Bukti Kunjungan Ruang BK</h2><p>${esc(BK.cfg.NAMA_SEKOLAH)}</p><hr><h1 style="letter-spacing:1px">${esc(r.id)}</h1>
-      <table style="margin-top:10px"><tr><th>Nama</th><td>${esc(p.nama)}</td></tr><tr><th>Kategori</th><td>${esc(BK.JENIS[s.snap.jenis].l)}</td></tr><tr><th>Waktu</th><td>${esc(BK.fmtTgl(r.tanggal))}, ${esc(r.jam)} WIB</td></tr><tr><th>Bidang</th><td>${esc(p.bidang.join(', '))}</td></tr></table><p style="margin-top:12px;font-size:11px">Data bersifat rahasia sesuai kode etik Guru BK.</p></div>`;
+      <table style="margin-top:10px"><tr><th>Nama</th><td>${esc(p.nama)}</td></tr><tr><th>Kategori</th><td>${esc(BK.JENIS[s.snap.jenis].l)}</td></tr><tr><th>Waktu</th><td>${esc(BK.fmtTgl(r.tanggal))}, ${esc(r.jam)} ${BK.tzAbbr()}</td></tr><tr><th>Bidang</th><td>${esc(p.bidang.join(', '))}</td></tr></table><p style="margin-top:12px;font-size:11px">Data bersifat rahasia sesuai kode etik Guru BK.</p></div>`;
     window.print();
   }
 

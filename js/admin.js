@@ -237,7 +237,7 @@
     const rows = d.rows;
     if (!rows.length) { $('#tbl').innerHTML = `<div class="empty">${ic('search', 34)}<p style="margin-top:8px"><b>Tidak ada data yang cocok.</b></p><p class="small">Ubah kata kunci atau reset filter.</p></div>`; $('#pgr').innerHTML = ''; return; }
     $('#tbl').innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID Kunjungan</th><th>Waktu & Tanggal</th><th>Nama Tamu & Selfie</th><th>Kategori</th><th>Kelas / Instansi</th><th>Bidang Layanan</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(r => `<tr data-id="${esc(r.ID_Kunjungan)}">
-      <td class="mono">${esc(r.ID_Kunjungan)}</td><td><b>${esc(BK.fmtTgl(r.Tanggal))}</b><div class="small muted">${esc(r.Jam)} WIB</div></td>
+      <td class="mono">${esc(r.ID_Kunjungan)}</td><td><b>${esc(BK.fmtTgl(r.Tanggal))}</b><div class="small muted">${esc(r.Jam)} ${BK.tzAbbr()}</div></td>
       <td><div style="display:flex;gap:10px;align-items:center">${BK.avatar(r)}<div style="min-width:0"><b class="ell" style="display:block;max-width:220px">${esc(r.Nama)}</b><div class="small muted ell" style="max-width:220px">${esc(subOf(r))}</div></div></div></td>
       <td>${BK.badgeJenis(r.Jenis)}</td><td>${esc(unitOf(r))}</td><td>${bidChips(r.Bidang_Layanan_BK)}</td><td>${BK.badgeStatus(r.Status_Tindak_Lanjut)}</td><td>${ic('right', 18)}</td></tr>`).join('')}</tbody></table></div>
       <div class="cards-m">${rows.map(r => `<div class="mcard" data-id="${esc(r.ID_Kunjungan)}"><div style="display:flex;gap:10px;align-items:center">${BK.avatar(r, 'lg')}<div class="grow"><b class="ell" style="display:block">${esc(r.Nama)}</b><div class="small muted ell">${esc(subOf(r))}</div></div>${BK.badgeJenis(r.Jenis)}</div>
@@ -262,7 +262,7 @@
     try {
       const r = await BK.api('exportTamu', fltOf(Q), { timeout: 60000 });
       if (!r.rows.length) { BK.toast('Tidak ada data untuk diekspor', 'warn'); return; }
-      const rng = (Q.from || 'awal') + '_sd_' + (Q.to || BK.fmtTgl(new Date().toISOString()).replace(/ /g, '-')), name = 'Rekap-Tamu-BK_' + rng;
+      const rng = (Q.from || 'awal') + '_sd_' + (Q.to || BK.fmtTgl(BK.localYMD()).replace(/ /g, '-')), name = 'Rekap-Tamu-BK_' + rng;
       const head = COLS.map(c => `<th>${c[1]}</th>`).join(''), body = r.rows.map(x => '<tr>' + COLS.map(c => `<td>${esc(c[0] === 'No_HP' ? "'" + x[c[0]] : c[0] === 'Jenis' ? (BK.JENIS[x.Jenis] || {}).l : x[c[0]])}</td>`).join('') + '</tr>').join('');
       if (fmt === 'xls') {
         BK.download(name + '.xls', new Blob(['\ufeff<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></body></html>'], { type: 'application/vnd.ms-excel' }));
@@ -308,7 +308,7 @@
     m.innerHTML = `<div class="view-enter">
     <div class="crumb"><a href="#/admin/tamu">${ic('left', 13)} Kembali ke Data Tamu</a> <span>/</span> <span>Layanan Konseling</span> <span>/</span> <b>Detail & Edit Sesi Tamu</b></div>
     <div class="card" style="display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap"><div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h1 class="h-lg">Detail Kunjungan Tamu</h1><span class="pill mono" style="background:#F1F5F9">${esc(id)} <button data-cp aria-label="Salin ID" style="display:inline-flex">${ic('copy', 12)}</button></span></div>
-      <div style="margin:8px 0" id="hstat">${BK.badgeStatus(r.Status_Tindak_Lanjut)}</div><div class="small t2" style="display:flex;gap:14px;flex-wrap:wrap"><span>${ic('clock', 14)} ${esc(BK.fmtTgl(r.Tanggal))} • ${esc(r.Jam)} WIB</span><span>${BK.badgeJenis(j)}</span></div></div>
+      <div style="margin:8px 0" id="hstat">${BK.badgeStatus(r.Status_Tindak_Lanjut)}</div><div class="small t2" style="display:flex;gap:14px;flex-wrap:wrap"><span>${ic('clock', 14)} ${esc(BK.fmtTgl(r.Tanggal))} • ${esc(r.Jam)} ${BK.tzAbbr()}</span><span>${BK.badgeJenis(j)}</span></div></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-soft" id="prt">${ic('printer', 16)} Cetak Berkas (PDF)</button>${sup ? `<button class="btn btn-danger" id="del">${ic('trash', 16)} Hapus Data <span class="pill" style="background:#fff;color:#B91C1C;font-size:9px">SUPER ADMIN</span></button>` : ''}</div></div>
     <div class="grid g-detail" style="margin-top:16px;align-items:start">
       <div style="display:grid;gap:16px"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b class="h-sm" style="display:flex;gap:8px;align-items:center">${ic('camera', 20)} Bukti Foto Selfie</b><span class="pill tag-live">Kamera Kiosk Masuk</span></div>
@@ -355,7 +355,7 @@
     const r = BK.rec[id], ch = collect(r);
     if (!Object.keys(ch).length) { BK.toast('Tidak ada perubahan untuk disimpan', 'warn'); return; }
     if (!ch.Nama && !String(r.Nama).trim()) return;
-    const prev = Object.assign({}, r), me = BK.Auth.user, now = new Date(); const iso = now.toISOString().substring(0, 19);
+    const prev = Object.assign({}, r), me = BK.Auth.user, now = new Date(); const iso = now.toISOString();
     Object.assign(r, ch, { Diubah_Oleh: me.nama, Diubah_Pada: iso }); patchCaches(id, r);       // OPTIMISTIC: UI langsung berubah
     $('#hstat').innerHTML = BK.badgeStatus(r.Status_Tindak_Lanjut); $('#lastmod').textContent = me.nama + ' • baru saja'; BK.toast('Perubahan disimpan', 'ok');
     BK.api('updateTamu', { id, perubahan: ch }, { retry: 1 }).then(res => { if (res.diubahPada) { r.Diubah_Pada = res.diubahPada; } })

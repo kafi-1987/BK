@@ -60,7 +60,7 @@ BK.api = async function (action, data, o) {
     try {
       // text/plain => tidak memicu CORS preflight (diblok GAS)
       const res = await fetch(BK.cfg.GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action, token: BK.Auth.token, data: data || {} }), signal: ctl.signal, redirect: 'follow' });
+        body: JSON.stringify({ action, token: BK.Auth.token, tz: BK.tz(), data: data || {} }), signal: ctl.signal, redirect: 'follow' });
       clearTimeout(tm);
       const j = await res.json();
       BK.online(true);
@@ -92,10 +92,26 @@ BK.swr = function (key, fetcher, render) {
     .catch(e => { if (!c) throw e; BK.toast('Menampilkan data tersimpan — ' + e.message, 'warn'); });
 };
 
+/* ---------- zona waktu PERANGKAT (otomatis, tanpa konfigurasi) ----------
+   Nama zona IANA dibaca dari browser/perangkat lalu dikirim di setiap request ke server.
+   Waktu dari server berupa instan UTC ("...Z") dan otomatis ditampilkan dalam jam perangkat. */
+const p2 = n => String(n).padStart(2, '0');
+BK.tz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { return ''; } };
+const TZ_ID = { 'Asia/Jakarta': 'WIB', 'Asia/Pontianak': 'WIB', 'Asia/Makassar': 'WITA', 'Asia/Ujung_Pandang': 'WITA', 'Asia/Jayapura': 'WIT' };
+let _ab = { t: 0, v: '' };
+BK.tzAbbr = () => {   // singkatan zona: WIB / WITA / WIT, atau GMT±n untuk zona lain
+  if (Date.now() - _ab.t < 600000 && _ab.v) return _ab.v;
+  let v = TZ_ID[BK.tz()];
+  if (!v) { try { const x = new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' }).formatToParts(new Date()).find(y => y.type === 'timeZoneName'); v = x && x.value; } catch (e) {} }
+  if (!v) { const o = -new Date().getTimezoneOffset(), a = Math.abs(o); v = 'GMT' + (o < 0 ? '-' : '+') + Math.floor(a / 60) + (a % 60 ? ':' + p2(a % 60) : ''); }
+  _ab = { t: Date.now(), v }; return v;
+};
+BK.localYMD = d => { d = d || new Date(); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };   // tanggal menurut jam perangkat
+
 /* ---------- format ---------- */
 const BLN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 BK.fmtTgl = s => { s = String(s || '').substring(0, 10); const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3] + ' ' + BLN[+m[2] - 1] + ' ' + m[1] : (s || '-'); };
-BK.fmtDT = iso => { if (!iso) return '-'; const d = new Date(iso); return isNaN(d) ? String(iso) : BK.fmtTgl(iso.substring(0, 10)) + ', ' + String(iso).substring(11, 16) + ' WIB'; };
+BK.fmtDT = iso => { if (!iso) return '-'; const d = new Date(iso); return isNaN(d) ? String(iso) : BK.fmtTgl(BK.localYMD(d)) + ', ' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' ' + BK.tzAbbr(); };
 BK.ago = iso => {
   const t = new Date(iso).getTime(); if (!t) return ''; const s = Math.floor((Date.now() - t) / 1000);
   if (s < 60) return 'baru saja'; if (s < 3600) return Math.floor(s / 60) + ' menit lalu'; if (s < 86400) return Math.floor(s / 3600) + ' jam lalu';
